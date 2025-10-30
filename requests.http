@@ -10,4 +10,4 @@ Content-Type: application/json
 }
 
 ### Get Announcement by ID
-GET http://localhost:8080/api/announcements/2
+GET http://localhost:8080/api/announcements/1
