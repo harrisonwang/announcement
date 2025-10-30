@@ -13,9 +13,6 @@ public record NewAnnouncement(
 
         LocalDate validFrom,
 
-        LocalDate validTo,
-
-        @NotBlank(message = "创建人不能为空")
-        String createdBy
+        LocalDate validTo
 ) {
 }

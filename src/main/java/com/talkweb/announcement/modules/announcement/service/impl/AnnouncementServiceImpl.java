@@ -30,8 +30,6 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         announcement.setValidFrom(newAnnouncement.validFrom());
         announcement.setValidTo(newAnnouncement.validTo());
         announcement.setStatus("DRAFT");
-        announcement.setCreatedBy(newAnnouncement.createdBy());
-        announcement.setUpdatedBy(newAnnouncement.createdBy());
         return announcement;
     }
 
