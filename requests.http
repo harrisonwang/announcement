@@ -25,3 +25,6 @@ Content-Type: application/json
 
 ### Publish Announcement
 POST http://localhost:8080/api/announcements/1/publish
+
+### Revoke Announcement
+PUT http://localhost:8080/api/announcements/1/revoke

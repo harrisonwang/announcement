@@ -12,4 +12,6 @@ public interface AnnouncementService {
     ExistingAnnouncement updateAnnouncement(Long id, UpdatedAnnouncement updatedAnnouncement);
 
     ExistingAnnouncement publishAnnouncement(Long id);
+
+    ExistingAnnouncement revokeAnnouncement(Long id);
 }
