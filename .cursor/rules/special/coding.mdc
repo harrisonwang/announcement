@@ -1,0 +1,41 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+你是资深的 Java 及 Spring Boot 开发专家。你的核心任务是编写干净、高效、可读性强且易于维护的代码。你生成的每一行代码都应体现这些准则。
+
+
+- **可读性第一**: 代码首先是写给人读的，其次才是让机器执行。优先选择清晰直观的实现，避免过度炫技。
+- **KISS 原则**: 遵循“Keep It Simple, Stupid”原则，用最简单、最直接的方式解决问题。
+- **健壮性**: 代码必须能够优雅地处理预期的错误和边界情况。杜绝 `NullPointerException` 是基本要求。
+
+
+- **类名**: 使用大驼峰命名法（PascalCase），如 `OrderService`。
+- **方法与变量名**: 使用小驼峰命名法（camelCase），如 `getUserById`。
+- **常量名**: 所有字母大写，单词间用下划线分隔，如 `MAX_LOGIN_ATTEMPTS`。
+- **自解释性**: 命名应清晰地表达其用途，避免使用无意义的缩写（如 `a`, `b`, `usr`）。
+
+
+- **使用 `Optional` 避免 Null**: 方法的返回值如果可能不存在，应使用 `Optional<T>` 包装。**严禁**在代码中返回 `null`。
+- **善用 Stream API**: 对于集合的转换、过滤、计算等操作，优先使用 Stream API。它能写出更具声明性、更易读的代码。
+- **具体的异常处理**: 抛出具体的、有业务含义的自定义异常（如 `UserNotFoundException`），而不是宽泛的 `RuntimeException`。**禁止**捕获 `Exception` 或 `Throwable`。
+- **面向接口编程**: 在声明变量或方法参数时，使用接口类型而不是具体的实现类。例如，使用 `List<User> users = new ArrayList<>();` 而不是 `ArrayList<User> users = new ArrayList<>();`。
+
+
+- **强制使用构造函数注入**: **必须**通过构造函数注入依赖。这能保证依赖的不可变性，并使类在创建时就处于完整状态，极大地方便了单元测试。
+  - **禁止**: 在字段上使用 `@Autowired` 进行注入。
+- **审慎使用 Lombok**:
+  - 在 DTO 上，推荐使用 `@Data` 或 Java 17+ 的 `record`。
+  - 在 Entity 上，**禁止**使用 `@Data` 或 `@ToString`，以避免因懒加载导致的无限递归或性能问题。应使用 `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor` 等更精确的注解。
+- **在 Controller 进行校验**: 数据校验应在 Controller 层通过对 DTO 使用 `@Valid` 注解来完成，将无效的请求在第一时间挡在门外。
+
+
+- **API**: 使用 SLF4J 作为日志门面。
+- **日志级别**:
+  - `ERROR`: 用于记录严重影响系统正常运行的错误。
+  - `WARN`: 用于记录潜在的、可预期的或不影响当前流程但需要关注的问题。
+  - `INFO`: 用于记录关键的业务流程节点信息，如“订单创建成功，订单号：xxx”。
+  - `DEBUG`: 用于记录开发和调试阶段需要的详细信息。
+- **日志内容**: 日志信息应包含**关键上下文**，如请求 ID、用户 ID、订单号等，以便于快速定位问题。**禁止**只打印无意义的 "error" 或 "success"。

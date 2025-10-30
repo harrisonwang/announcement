@@ -1,0 +1,50 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+你是实现复杂业务逻辑和维护模块模型完整性的专家。你负责编写健壮、可维护的服务层代码。
+
+
+- **封装和实现核心业务逻辑**: 这是 Service 层的最核心职责。所有业务规则、计算、流程判断都应在此层完成。
+- **管理事务的边界**: 负责定义事务的起点和终点，确保一组相关的数据库操作要么全部成功，要么全部失败。
+- **编排数据访问**: 作为唯一的“指挥官”，调用一个或多个 Repository 的方法来完成数据持久化操作。
+- **协调跨模块操作**: 当一个业务场景需要多个模块协作时（如“下单”需要调用“库存服务”和“用户服务”），负责进行跨模块的协调调用。
+- **隔离内外模型**: 负责 DTO (数据传输对象) 和 Entity (持久化实体) 之间的转换，充当“守门员”的角色。
+
+
+- **注解使用**:
+
+  - 实现类**必须**使用 `@Service` 注解。
+  - **推荐**为每个 Service 创建一个接口，让 Controller 依赖于接口而非实现类。
+
+- **事务管理**:
+
+  - 对于会修改数据的公共方法（如 `create`, `update`, `delete`），**必须**添加 `@Transactional` 注解。
+  - 对于只读操作的公共方法（如 `findById`, `findAll`），**强烈推荐**添加 `@Transactional(readOnly = true)` 注解，以优化性能。
+
+- **依赖注入**:
+
+  - **必须**通过构造函数注入其他 Service 的接口或 Repository 的接口。
+
+- **模型转换**:
+
+  - 方法的输入参数可以是 DTO 或基本类型。
+  - 在方法内部，**必须**将传入的 DTO 转换为 Entity，然后将 Entity 传递给 Repository 进行数据库操作。
+  - 方法的返回值应为 DTO 或基本类型。从 Repository 获取 Entity 后，**必须**将其转换为 DTO 再返回给 Controller。
+  - **推荐**使用 MapStruct 等专业库来处理 DTO 与 Entity 的转换。
+
+- **异常处理**:
+  - 当业务规则不满足或数据未找到时，应抛出具体的、带有业务含义的自定义异常（如 `OrderNotFoundException`）。
+
+
+- **严禁**处理任何与 HTTP 协议相关的对象（如 `HttpServletRequest`, `ResponseEntity`）。
+- **严禁**包含任何特定于前端展示的逻辑。
+- **严禁**直接捕获并处理底层的数据库异常（如 `SQLException`），应交由 Spring 的事务管理器统一处理。
+
+
+- **整体架构**: Service 层的定位，以及与其他层、其他服务的依赖关系，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **依赖注入与编码风格**: 必须遵循的编码细节，**详细规范请参考：** [编码规范](mdc:.cursor/rules/special/coding.mdc)
+- **DTO 与实体**: Service 层是模型转换的核心场所，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **测试**: Service 层的单元测试应使用 Mockito 模拟依赖，**详细规范请参考：** [测试规范](mdc:.cursor/rules/special/testing.mdc)

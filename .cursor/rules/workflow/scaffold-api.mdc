@@ -1,0 +1,293 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+
+你是一个遵循**单 API 开发范式**的智能脚手架引擎。你的核心宗旨是**最小化必要生成**：聚焦于用户请求的单个 API，只创建或修改完成该 API 所必需的最少文件，以减轻开发者的审查负担。
+
+
+
+这是首要步骤。你必须像一名开发者一样，从用户的自然语言请求中，解析出构建一个 API 所需的全部核心要素：
+
+- **资源 (Resource)**: 操作的核心对象是什么？(如: 公告)
+- **动作 (Action)**: 要执行什么操作？(如: 创建, 更新, 发布)
+- **HTTP 方法 (Method)**: 根据动作推断出最合适的 HTTP 方法 (如: 创建 -> POST, 更新 -> PUT, 发布 -> PUT/PATCH)。
+- **输入数据 (Input)**: 该操作需要从客户端接收哪些数据？(如: 创建公告需要`标题`和`内容`)。如果只需要 ID，且 ID 在 URL 路径中，则认为无额外输入数据。
+- **输出数据 (Output)**: 该操作完成后，需要向客户端返回什么数据？(如: 创建公告后返回新生成的公告信息)。
+
+
+基于解析出的核心要素，动态判断需要创建或修改的文件集合：
+
+- **`Entity` 和 `Repository`**:
+
+  - **判断**: 这是该资源的第一个 API 吗？(即项目中尚不存在该资源的 Entity 和 Repository)
+  - **决策**: 如果是，则**创建** `Entity` 和 `Repository` 文件。否则，跳过。
+
+- **`Request DTO`**:
+
+  - **判断**: 解析出的“输入数据”是否为空？
+  - **决策**: 如果不为空，则**创建**一个新的、以动作命名的 `Request DTO` (如 `NewAnnouncement` 或 `UpdatedAnnouncement`)。否则，跳过。
+
+- **`Response DTO`**:
+
+  - **判断**: 解析出的“输出数据”是否需要一个特定的结构？(通常，只要不是返回 `void` 或简单类型，就需要)。
+  - **决策**: 如果需要，且尚不存在合适的 `Response DTO`，则**创建**一个。(如 `ExistingAnnouncement`)。否则，跳过。
+
+- **`Service` 和 `Controller`**:
+  - **决策**: 这两个文件**总是需要被修改**。在 `Service` 中添加新的业务方法，在 `Controller` 中添加新的 API 端点。否则，跳过。
+
+
+根据第二步的决策，遵循“由底向上”的顺序，创建或修改相应的文件。在操作每一个文件时，**必须**严格遵循其对应的规范：
+
+- **`Entity`**: 如果决策需要创建 `Entity`，则创建该文件，并**严格遵循**：**[实体层规范](mdc:.cursor/rules/layer/entity.mdc)**
+- **`DTO`**: 如果决策需要创建 `DTO`，则创建该文件，并**严格遵循**：**[DTO 层规范](mdc:.cursor/rules/layer/dto.mdc)**
+- **`Repository`**: 修改或创建 `Repository` 文件时，**必须严格遵循**：**[数据访问层规范](mdc:.cursor/rules/layer/repository.mdc)**
+- **`Service`**: 修改或创建 `Service` 文件时，**必须严格遵循**：**[服务层规范](mdc:.cursor/rules/layer/service.mdc)**
+- **`Controller`**: 修改或创建 `Controller` 文件时，**必须严格遵循**：**[控制层规范](mdc:.cursor/rules/layer/controller.mdc)**
+
+**全局规范**:
+在生成上述任何文件时，你还必须始终遵循以下更宏观的规范，它们是所有代码的基石：
+
+- **架构规范**: **[架构规范](mdc:.cursor/rules/special/architecting.mdc)**
+- **编码规范**: **[编码规范](mdc:.cursor/rules/special/coding.mdc)**
+- **测试规范**: (虽然此工作流不直接生成测试，但生成的代码必须是可测试的，遵循)**[测试规范](mdc:.cursor/rules/special/testing.mdc)**
+
+---
+
+
+
+**用户请求**: "请帮我开发一个创建公告的 API，公告需要包含标题(title)和内容(content)。"
+
+**AI 决策**:
+
+- **解析**: 资源=公告, 动作=创建, 方法=POST, 输入=标题+内容, 输出=创建后的公告。
+- **范围**: 这是“公告”资源的第一个 API，需要创建所有文件。
+
+**AI 响应**:
+我已为您创建了以下文件来完成“创建公告” API 的开发：
+
+1.  新创建的 **`Announcement.java` (Entity)**：
+
+    ```java
+    // ... imports
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Entity
+    @EntityListeners(AuditingEntityListener.class)
+    @Table(name = "announcements")
+    public class Announcement implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
+
+        @Column(name = "title", nullable = false)
+        private String title;
+
+        @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+        private String content;
+
+        @CreatedBy
+        @Column(name = "created_by", nullable = false)
+        private String createdBy;
+
+        @CreatedDate
+        @Column(name = "created_at", nullable = false)
+        private LocalDateTime createdAt;
+
+        @LastModifiedBy
+        @Column(name = "updated_by", nullable = false)
+        private String updatedBy;
+
+        @LastModifiedDate
+        @Column(name = "updated_at", nullable = false)
+        private LocalDateTime updatedAt;
+
+    }
+    ```
+
+2.  新创建的 **`AnnouncementRepository.java`**：
+
+    ```java
+    // ... imports
+    @Repository
+    public interface AnnouncementRepository extends JpaRepository<Announcement, Long> {
+        // ...
+    }
+    ```
+
+3.  新创建的 **`NewAnnouncement.java`** 和 **`ExistingAnnouncement.java`** (DTOs)：
+
+    ```java
+    // ... imports
+    public record NewAnnouncement(
+        @NotBlank String title,
+        @NotBlank String content
+    ) {}
+    ```
+
+    ```java
+    // ... imports
+    public record ExistingAnnouncement(
+        Long id,
+        String title,
+        String content,
+        LocalDateTime createdAt
+    ) {}
+    ```
+
+4.  新创建的 **`AnnouncementService.java`** 和 **`AnnouncementServiceImpl.java`**：
+
+    ```java
+    // ... imports
+    public interface AnnouncementService {
+        ExistingAnnouncement createAnnouncement(NewAnnouncement newAnnouncement);
+    }
+    ```
+
+    ```java
+    // ... imports
+    @Service
+    @RequiredArgsConstructor
+    public class AnnouncementServiceImpl implements AnnouncementService {
+
+        private final AnnouncementRepository announcementRepository;
+
+        @Override
+        public ExistingAnnouncement createAnnouncement(NewAnnouncement newAnnouncement) {
+            Announcement announcement = toEntity(newAnnouncement);
+            announcementRepository.save(announcement);
+            return toDTO(announcement);
+        }
+    }
+    ```
+
+5.  新创建的 **`AnnouncementController.java`**：
+
+    ```java
+    // ... imports
+    @RestController
+    @RequestMapping("/announcements")
+    @RequiredArgsConstructor
+    public class AnnouncementController {
+
+        private final AnnouncementService announcementService;
+
+        @PostMapping
+        public ResponseEntity<ExistingAnnouncement> createAnnouncement(@Validated @RequestBody NewAnnouncement newAnnouncement) {
+            ExistingAnnouncement existingAnnouncement = announcementService.createAnnouncement(newAnnouncement);
+            return ResponseEntity.ok(existingAnnouncement);
+        }
+    }
+    ```
+
+---
+
+
+**用户请求**: "接下来，请为公告增加一个更新接口，允许修改标题和内容。"
+
+**AI 决策**:
+
+- **解析**: 资源=公告, 动作=更新, 方法=PUT, 输入=标题+内容, 输出=更新后的公告。
+- **范围**: Entity 和 Repository 已存在。需要新的 DTO 来承载更新数据，并修改 Service 和 Controller。否则，跳过。
+
+**AI 响应**:
+好的，我已通过创建和修改以下文件，为您添加了“更新公告”的功能：
+
+1.  新创建的 **`UpdatedAnnouncement.java`** (DTO)：
+
+    ```java
+    // ... imports
+    public record UpdatedAnnouncement(
+        @NotBlank String title,
+        @NotBlank String content
+    ) {}
+    ```
+
+2.  修改 **`AnnouncementService.java`** 和 **`AnnouncementServiceImpl.java`**，新增 update 方法：
+
+    ```java
+    // ... imports
+    public interface AnnouncementService {
+        ExistingAnnouncement updateAnnouncement(UpdatedAnnouncement updatedAnnouncement);
+    }
+    ```
+
+    ```java
+    // ... imports
+    public class AnnouncementServiceImpl implements AnnouncementService {
+        @Override
+        public ExistingAnnouncement updateAnnouncement(UpdatedAnnouncement updatedAnnouncement) {
+            Announcement announcement = toEntity(updatedAnnouncement);
+            announcementRepository.save(announcement);
+            return toDTO(announcement);
+        }
+    }
+    ```
+
+3.  修改 **`AnnouncementController.java`**，新增 update 端点：
+
+    ```java
+    // ... imports
+    public class AnnouncementController {
+        @PutMapping("/{id}")
+        public ResponseEntity<ExistingAnnouncement> updateAnnouncement(@PathVariable Long id, @Validated @RequestBody UpdatedAnnouncement updatedAnnouncement) {
+            ExistingAnnouncement existingAnnouncement = announcementService.updateAnnouncement(updatedAnnouncement);
+            return ResponseEntity.ok(existingAnnouncement);
+        }
+    }
+    ```
+
+---
+
+
+**用户请求**: "最后，请给我一个发布公告的接口，通过公告 ID 将公告的 `published` 字段设为 `true`。"
+
+**AI 决策**:
+
+- **解析**: 资源=公告, 动作=发布, 方法=PUT, 输入=无(ID 在路径中), 输出=无(`void`)。
+- **范围**: Entity 和 Repository 已存在。无需新的 DTO。只需修改 Service 和 Controller。
+
+**AI 响应**:
+没问题。我已通过修改以下文件，为您实现了“发布公告”的接口：
+
+1.  修改 **`AnnouncementService.java`** 和 **`AnnouncementServiceImpl.java`**，新增 publish 方法：
+
+    ```java
+    // ... imports
+    public interface AnnouncementService {
+        ExistingAnnouncement publishAnnouncement(Long id);
+    }
+    ```
+
+    ```java
+    // ... imports
+    public class AnnouncementServiceImpl implements AnnouncementService {
+        @Override
+        public ExistingAnnouncement publishAnnouncement(Long id) {
+            Announcement announcement = announcementRepository.findById(id).orElseThrow(() -> new AnnouncementNotFoundException(id));
+            announcement.setPublished(true);
+            announcementRepository.save(announcement);
+            return toDTO(announcement);
+        }
+    }
+    ```
+
+2.  修改 **`AnnouncementController.java`**，新增 publish 端点：
+
+    ```java
+    // ... imports
+    public class AnnouncementController {
+        @PutMapping("/{id}/publish")
+        public ResponseEntity<ExistingAnnouncement> publishAnnouncement(@PathVariable Long id) {
+            ExistingAnnouncement existingAnnouncement = announcementService.publishAnnouncement(id);
+            return ResponseEntity.ok(existingAnnouncement);
+        }
+    }
+    ```

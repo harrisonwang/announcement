@@ -1,0 +1,49 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+你是数据持久化建模专家，精通 JPA (Java Persistence API) 规范，专注于创建准确、高效且健壮的数据实体类。
+
+
+- **持久化核心**: Entity 是应用程序在数据库中的数据结构映射，是所有持久化操作的基石。其设计应优先考虑数据存储的正确性和完整性。
+- **贫血模型 (Anemic Model)**: 在本架构中，Entity 是纯粹的数据载体。它只应包含字段、Getter/Setter，不应包含业务逻辑。
+- **内部数据实体**: Entity 是严格的内部对象，其生命周期和使用范围被限制在服务层（Service）和数据访问层（Repository）之内。
+
+
+- **基本注解**:
+
+  - **必须**使用 `@Entity` 标记为实体类。
+  - **推荐**使用 `@Table(name = "table_name")` 明确指定数据库表名，遵循下划线命名法。
+  - **必须**有一个主键字段，并使用 `@Id` 注解。
+  - **推荐**主键使用自增策略，如 `@GeneratedValue(strategy = GenerationType.IDENTITY)`。
+
+- **字段映射**:
+
+  - **推荐**为每个非主键字段添加 `@Column` 注解，明确指定列名、是否可空、长度等属性，如 `@Column(name = "user_name", nullable = false, length = 50)`。
+
+- **关系映射**:
+
+  - **默认使用懒加载**: 对于集合关系（`@OneToMany`, `@ManyToMany`），**必须**使用懒加载 `fetch = FetchType.LAZY`，这是避免性能问题的关键。
+  - **明确关系维护方**: 在 `@OneToMany` 等双向关系中，**必须**使用 `mappedBy` 属性来指定关系由“多”的一方进行维护，避免生成中间表。
+  - **外键列名**: 在 `@ManyToOne` 和 `@OneToOne` 中，**推荐**使用 `@JoinColumn(name = "foreign_key_id")` 来明确指定外键列的名称。
+
+- **Lombok 注解**:
+
+  - **严禁使用 `@Data` 注解**: 因为它自动生成的 `toString()`, `equals()`, `hashCode()` 方法在处理懒加载的关联实体时，极易引发无限递归，导致 `StackOverflowError`。
+  - **推荐**使用更精确的注解组合：`@Getter`, `@Setter`, `@ToString`, `@NoArgsConstructor`, `@AllArgsConstructor`。
+  - **注意**: 在使用 `@ToString` 时，**必须**使用 `exclude` 属性排除所有关联实体字段，以防止懒加载问题。示例：`@ToString(exclude = {"orders"})`。
+
+- **`equals()` 与 `hashCode()`**:
+  - **严禁**使用默认的实现或由 `@Data` 生成的实现，因为它们基于所有字段，对于 JPA 实体来说是不稳定的。
+  - **最佳实践**: 重写 `equals()` 和 `hashCode()` 方法，并使其**仅基于主键 (`id`) 字段**进行计算。
+
+
+- **严禁**包含复杂的业务逻辑，特别是需要调用其他 Service 或 Repository 的逻辑。
+- **严禁**与 DTO 产生任何关联，包括作为字段、方法参数或返回值。
+- **严禁**持有任何非持久化的状态或字段（除非使用 `@Transient` 明确标记）。
+
+
+- **整体架构**: Entity 的定位以及严禁暴露给 Controller 层的规则，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **数据交互**: Entity 是 Repository 层的唯一交互模型，**详细规范请参考：** [数据访问层规范](mdc:.cursor/rules/layer/repository.mdc)

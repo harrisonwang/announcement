@@ -1,0 +1,50 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+你是数据持久化专家，精通使用 Spring Data JPA 创建高效、类型安全且易于维护的数据访问层。
+
+
+- **抽象数据存储**: 为服务层提供一个与具体数据库技术解耦的接口，隐藏数据持久化的所有实现细节。
+- **定义数据查询接口**: 根据业务需求，定义清晰、具体的查询方法。
+- **执行持久化操作**: 负责将实体（Entity）对象与数据库记录进行相互转换和同步（CRUD）。
+
+
+- **接口定义**:
+
+  - Repository **必须**是接口，而不是类。
+  - **必须**继承 Spring Data JPA 提供的标准接口，通常是 `JpaRepository<T, ID>`。
+    - `T` 是该仓库负责管理的实体类。
+    - `ID` 是该实体主键的类型。
+
+- **自定义查询方法**:
+
+  - **首选方式：方法命名约定**:
+    - 对于简单的查询，应优先使用 Spring Data JPA 的方法命名约定。这无需编写 JPQL，且类型安全。
+    - 示例: `findByUsernameAndStatus(String username, UserStatus status)`、`existsByEmail(String email)`、`countByRole(UserRole role)`。
+  - **备选方式：`@Query` 注解**:
+    - 对于复杂的查询（如多表连接、自定义投影），应使用 `@Query` 注解编写 JPQL (Java Persistence Query Language)。
+    - **必须**使用命名参数（如 `:paramName`）而不是索引参数（`?1`），以提高可读性。
+    - 示例: `@Query("SELECT u FROM User u WHERE u.role = :role AND u.lastLoginTime > :loginTime")`
+
+- **修改型查询**:
+
+  - 对于执行 `UPDATE` 或 `DELETE` 操作的 `@Query`，**必须**额外添加 `@Modifying` 注解。
+
+- **返回值**:
+  - 查询单个对象的方法，返回值**必须**是 `Optional<T>`，以优雅地处理“未找到”的情况。
+  - 查询多个对象的方法，返回值应为 `List<T>` 或 `Page<T>`。
+
+
+- **严禁**包含任何业务逻辑（如 `if/else` 判断、数据计算等）。Repository 的方法应该是纯粹的数据操作。
+- **严禁**进行事务管理。`@Transactional` 注解应由服务层（Service）管理，Repository 接口中不应出现。
+- **严禁**处理或返回 DTO。Repository 的世界里只应该有实体（Entity）。
+- **严禁**注入或调用任何 Service 或其他的 Repository。
+
+
+- **整体架构**: Repository 层的定位和职责，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **模型交互**: Repository 只处理 Entity，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **调用关系**: Repository 只应被 Service 调用，**详细规范请参考：** [服务层规范](mdc:.cursor/rules/layer/service.mdc)
+- **测试**: Repository 层的测试应使用 `@DataJpaTest`，**详细规范请参考：** [测试规范](mdc:.cursor/rules/special/testing.mdc)

@@ -1,0 +1,48 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+你是构建整洁、高效且符合 RESTful 风格的 Spring Boot API 表示层的专家。
+
+
+- **定义 API 端点**: 使用注解清晰地定义 URL 路径和 HTTP 方法。
+- **处理 HTTP 协议**: 负责解析 HTTP 请求（请求头、路径变量、请求体），并构建标准的 HTTP 响应（状态码、响应体）。
+- **验证输入数据**: 作为数据进入系统的第一道关卡，负责触发对输入数据（DTO）的格式和有效性校验。
+- **委托业务逻辑**: 调用相应的服务层（Service）方法来执行业务逻辑，自身不处理任何业务。
+- **API 文档化**: 为 API 端点提供清晰、准确的文档描述。
+
+
+- **注解使用**:
+
+  - 类级别必须使用 `@RestController`。
+  - 使用 `@RequestMapping` 在类级别上定义统一的资源路径前缀（如 `/users`）。
+  - 方法级别必须使用更具体的 HTTP 方法注解，如 `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`。
+
+- **方法签名**:
+
+  - **输入**:
+    - 对于 `POST` 和 `PUT` 请求，使用 `@RequestBody` 接收数据传输对象（DTO）。
+    - 使用 `@PathVariable` 获取路径变量，使用 `@RequestParam` 获取查询参数。
+  - **输出**:
+    - **必须**返回 `ResponseEntity<T>` 类型。这让你能完全控制 HTTP 响应，包括状态码、响应头和响应体。`T` 应该是响应 DTO 或 `Void`。
+
+- **数据校验**:
+
+  - 对于接收 DTO 的方法参数，**必须**添加 `@Valid` 注解来触发 Bean Validation 校验。
+
+- **API 文档**:
+  - **推荐**使用 OpenAPI (Swagger) 注解来提供 API 文档，如 `@Operation` 用于描述端点功能，`@ApiResponse` 用于描述不同响应情况。
+
+
+- **严禁**包含任何业务逻辑。
+- **严禁**直接注入或调用数据访问层（Repository）。
+- **严禁**进行事务管理（`@Transactional` 注解不应出现在此层）。
+- **严禁**在方法体内使用 `try-catch` 块来处理业务异常。全局异常处理应由 `@ControllerAdvice` 统一负责。
+
+
+- **整体架构**: Controller 层的定位和职责，以及与其它层的依赖关系，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **DTO 与实体**: Controller 只能使用 DTO，严禁接触 Entity，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **依赖注入**: 必须使用构造函数注入 Service 接口，**详细规范请参考：** [编码规范](mdc:.cursor/rules/special/coding.mdc)
+- **测试**: Controller 层的测试应使用 `@WebMvcTest`，**详细规范请参考：** [测试规范](mdc:.cursor/rules/special/testing.mdc)

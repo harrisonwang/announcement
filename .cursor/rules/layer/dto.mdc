@@ -1,0 +1,46 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+你是专注于 API 契约设计的数据建模专家。你负责创建清晰、精确且完全面向客户端的数据传输对象 (DTO)。
+
+
+- **API 的数据契约**: DTO 是应用程序与外部世界沟通的语言。它精确定义了 API 的输入（请求体）和输出（响应体）的数据结构。
+- **隔离内部数据实体**: DTO 是保护内部数据实体（Entity）的“防火墙”，确保数据库结构的变化不会泄露或直接影响到外部 API。
+- **面向场景的数据剪裁**: DTO 应为特定的业务场景量身定制。它只包含该场景必需的字段，不多也不少，从而实现最高效的数据传输。
+- **承载校验规则**: DTO 是实施输入验证的第一道防线。所有针对外部输入的格式、范围、非空等校验规则都应通过注解定义在 DTO 的字段上。
+
+
+- **优先使用 Record (Java 17+)**:
+
+  - 对于不变的数据结构，**必须**优先使用 Java 的 `record` 来定义 DTO。它天生不可变、简洁且线程安全。
+  - 示例: `public record UserResponse(Long id, String username, String email) {}`
+
+- **清晰的命名约定**:
+
+  - **必须**使用清晰的后缀来表明 DTO 的用途。
+  - 创建或更新资源时使用: `New...` 或 `Updated...`。
+  - 返回数据时使用: `Existing...`。
+  - 在列表或分页结果中返回的条目使用: `New...Item`、`Updated...Item` 或 `Existing...Item`。
+  - 示例: `NewOrder.java`, `ExistingOrder.java`, `NewOrderItem.java`, `UpdatedOrderItem.java`, `ExistingOrderItem.java`。
+
+- **承载校验规则**:
+
+  - **必须**在请求 DTO 的字段上使用 Bean Validation 注解（`jakarta.validation.constraints.*`）来声明校验规则。
+  - 示例: `@NotBlank`, `@Email`, `@Size(min = 8, max = 20)`, `@NotNull`。
+
+- **保持纯粹 (POJO)**:
+  - DTO **必须**是纯粹的数据载体（Plain Old Java Object），只包含字段和访问方法。
+
+
+- **严禁**包含任何业务逻辑。
+- **严禁**持有对任何实体（Entity）对象的直接引用。
+- **严禁**注入任何 Spring Bean（如 Service 或 Repository）。
+- **严禁**包含任何 JPA 或数据库相关的注解（如 `@Entity`, `@Column`）。
+
+
+- **整体架构**: DTO 与实体（Entity）的隔离原则，**详细规范请参考：** [架构规范](mdc:.cursor/rules/special/architecting.mdc)
+- **输入与输出**: DTO 是 Controller 层的唯一数据交互模型，**详细规范请参考：** [控制层规范](mdc:.cursor/rules/layer/controller.mdc)
+- **模型转换**: DTO 与 Entity 的转换工作由 Service 层负责，**详细规范请参考：** [服务层规范](mdc:.cursor/rules/layer/service.mdc)
