@@ -57,6 +57,23 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理业务状态异常
+     */
+    @ExceptionHandler(com.talkweb.announcement.common.exception.BusinessStateException.class)
+    public ProblemDetail handleBusinessState(com.talkweb.announcement.common.exception.BusinessStateException ex) {
+        log.warn("业务状态异常: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage());
+
+        problemDetail.setType(URI.create("https://api.example.com/problems/business-state"));
+        problemDetail.setTitle("业务状态异常");
+
+        return problemDetail;
+    }
+
+    /**
      * 处理其他未预期的异常
      */
     @ExceptionHandler(Exception.class)
