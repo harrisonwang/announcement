@@ -20,4 +20,10 @@ public class AnnouncementController {
         ExistingAnnouncement existingAnnouncement = announcementService.createAnnouncement(newAnnouncement);
         return ResponseEntity.ok(existingAnnouncement);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ExistingAnnouncement> getAnnouncementById(@PathVariable Long id) {
+        ExistingAnnouncement existingAnnouncement = announcementService.getAnnouncementById(id);
+        return ResponseEntity.ok(existingAnnouncement);
+    }
 }

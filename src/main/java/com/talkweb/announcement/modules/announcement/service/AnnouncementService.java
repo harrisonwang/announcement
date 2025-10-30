@@ -5,4 +5,6 @@ import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
 
 public interface AnnouncementService {
     ExistingAnnouncement createAnnouncement(NewAnnouncement newAnnouncement);
+
+    ExistingAnnouncement getAnnouncementById(Long id);
 }

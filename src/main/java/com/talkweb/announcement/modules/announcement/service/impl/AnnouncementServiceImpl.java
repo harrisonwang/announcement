@@ -5,6 +5,7 @@ import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
 import com.talkweb.announcement.modules.announcement.entity.Announcement;
 import com.talkweb.announcement.modules.announcement.repository.AnnouncementRepository;
 import com.talkweb.announcement.modules.announcement.service.AnnouncementService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         Announcement announcement = toEntity(newAnnouncement);
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return toDTO(savedAnnouncement);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ExistingAnnouncement getAnnouncementById(Long id) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("公告不存在，ID: " + id));
+        return toDTO(announcement);
     }
 
     private Announcement toEntity(NewAnnouncement newAnnouncement) {
