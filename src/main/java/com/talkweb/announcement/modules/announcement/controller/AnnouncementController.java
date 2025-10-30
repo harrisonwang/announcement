@@ -5,8 +5,10 @@ import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
 import com.talkweb.announcement.modules.announcement.service.AnnouncementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/announcements")
@@ -16,9 +18,16 @@ public class AnnouncementController {
     private final AnnouncementService announcementService;
 
     @PostMapping
-    public ResponseEntity<ExistingAnnouncement> createAnnouncement(@Valid @RequestBody NewAnnouncement newAnnouncement) {
+    public ResponseEntity<ExistingAnnouncement> createAnnouncement(
+            @Valid @RequestBody NewAnnouncement newAnnouncement,
+            UriComponentsBuilder uriBuilder) {
         ExistingAnnouncement existingAnnouncement = announcementService.createAnnouncement(newAnnouncement);
-        return ResponseEntity.ok(existingAnnouncement);
+        String location = uriBuilder.path("/api/announcements/{id}")
+                .buildAndExpand(existingAnnouncement.id())
+                .toUriString();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Location", location)
+                .body(existingAnnouncement);
     }
 
     @GetMapping("/{id}")
