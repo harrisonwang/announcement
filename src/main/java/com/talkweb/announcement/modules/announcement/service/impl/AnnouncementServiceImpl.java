@@ -27,6 +27,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private static final Set<String> REVOKABLE_STATUSES = Set.of("PUBLISHED");
 
+    private static final Set<String> DELETABLE_STATUSES = Set.of("DRAFT", "REVOKED", "PENDING");
+
     @Override
     @Transactional
     public ExistingAnnouncement createAnnouncement(NewAnnouncement newAnnouncement) {
@@ -97,6 +99,24 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
 
         announcement.setStatus("REVOKED");
+
+        Announcement savedAnnouncement = announcementRepository.save(announcement);
+        return toDTO(savedAnnouncement);
+    }
+
+    @Override
+    @Transactional
+    public ExistingAnnouncement deleteAnnouncement(Long id) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("公告不存在，ID: " + id));
+
+        String currentStatus = announcement.getStatus();
+        if (!DELETABLE_STATUSES.contains(currentStatus)) {
+            throw new BusinessStateException(
+                    String.format("当前状态为 %s，只有草稿、已撤销或待发布状态的公告可以删除", currentStatus));
+        }
+
+        announcement.setStatus("DELETED");
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return toDTO(savedAnnouncement);

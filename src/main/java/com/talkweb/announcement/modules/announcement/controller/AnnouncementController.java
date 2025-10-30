@@ -56,4 +56,10 @@ public class AnnouncementController {
         ExistingAnnouncement existingAnnouncement = announcementService.revokeAnnouncement(id);
         return ResponseEntity.ok(existingAnnouncement);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ExistingAnnouncement> deleteAnnouncement(@PathVariable Long id) {
+        ExistingAnnouncement existingAnnouncement = announcementService.deleteAnnouncement(id);
+        return ResponseEntity.ok(existingAnnouncement);
+    }
 }
