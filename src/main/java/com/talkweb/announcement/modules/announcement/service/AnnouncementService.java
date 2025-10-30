@@ -1,8 +1,10 @@
 package com.talkweb.announcement.modules.announcement.service;
 
+import com.talkweb.announcement.modules.announcement.dto.AnnouncementSearchRequest;
 import com.talkweb.announcement.modules.announcement.dto.ExistingAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.UpdatedAnnouncement;
+import org.springframework.data.domain.Page;
 
 public interface AnnouncementService {
     ExistingAnnouncement createAnnouncement(NewAnnouncement newAnnouncement);
@@ -18,4 +20,6 @@ public interface AnnouncementService {
     ExistingAnnouncement deleteAnnouncement(Long id);
 
     int markExpiredAnnouncements();
+
+    Page<ExistingAnnouncement> searchAnnouncements(AnnouncementSearchRequest searchRequest);
 }
