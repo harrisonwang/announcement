@@ -2,6 +2,7 @@ package com.talkweb.announcement.modules.announcement.controller;
 
 import com.talkweb.announcement.modules.announcement.dto.ExistingAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
+import com.talkweb.announcement.modules.announcement.dto.UpdatedAnnouncement;
 import com.talkweb.announcement.modules.announcement.service.AnnouncementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,14 @@ public class AnnouncementController {
     @GetMapping("/{id}")
     public ResponseEntity<ExistingAnnouncement> getAnnouncementById(@PathVariable Long id) {
         ExistingAnnouncement existingAnnouncement = announcementService.getAnnouncementById(id);
+        return ResponseEntity.ok(existingAnnouncement);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ExistingAnnouncement> updateAnnouncement(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatedAnnouncement updatedAnnouncement) {
+        ExistingAnnouncement existingAnnouncement = announcementService.updateAnnouncement(id, updatedAnnouncement);
         return ResponseEntity.ok(existingAnnouncement);
     }
 }
