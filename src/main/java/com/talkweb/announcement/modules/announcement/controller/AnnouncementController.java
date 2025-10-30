@@ -1,15 +1,20 @@
 package com.talkweb.announcement.modules.announcement.controller;
 
+import com.talkweb.announcement.modules.announcement.dto.AnnouncementSearchRequest;
 import com.talkweb.announcement.modules.announcement.dto.ExistingAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.UpdatedAnnouncement;
 import com.talkweb.announcement.modules.announcement.service.AnnouncementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/announcements")
@@ -61,5 +66,19 @@ public class AnnouncementController {
     public ResponseEntity<ExistingAnnouncement> deleteAnnouncement(@PathVariable Long id) {
         ExistingAnnouncement existingAnnouncement = announcementService.deleteAnnouncement(id);
         return ResponseEntity.ok(existingAnnouncement);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ExistingAnnouncement>> searchAnnouncements(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate validFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate validTo,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        AnnouncementSearchRequest searchRequest = new AnnouncementSearchRequest(
+                title, status, validFrom, validTo, page, size);
+        Page<ExistingAnnouncement> result = announcementService.searchAnnouncements(searchRequest);
+        return ResponseEntity.ok(result);
     }
 }
