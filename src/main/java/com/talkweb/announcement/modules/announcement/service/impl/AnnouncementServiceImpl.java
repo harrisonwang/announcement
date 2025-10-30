@@ -1,6 +1,7 @@
 package com.talkweb.announcement.modules.announcement.service.impl;
 
 import com.talkweb.announcement.common.exception.BusinessStateException;
+import com.talkweb.announcement.modules.announcement.dto.AnnouncementSearchRequest;
 import com.talkweb.announcement.modules.announcement.dto.ExistingAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.NewAnnouncement;
 import com.talkweb.announcement.modules.announcement.dto.UpdatedAnnouncement;
@@ -8,13 +9,19 @@ import com.talkweb.announcement.modules.announcement.entity.Announcement;
 import com.talkweb.announcement.modules.announcement.repository.AnnouncementRepository;
 import com.talkweb.announcement.modules.announcement.service.AnnouncementService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -146,6 +153,45 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         log.info("成功标记 {} 条公告为过期状态", expiredAnnouncements.size());
 
         return expiredAnnouncements.size();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ExistingAnnouncement> searchAnnouncements(AnnouncementSearchRequest searchRequest) {
+        Specification<Announcement> specification = buildSpecification(searchRequest);
+        
+        int page = searchRequest.page() != null && searchRequest.page() >= 0 ? searchRequest.page() : 0;
+        int size = searchRequest.size() != null && searchRequest.size() > 0 ? searchRequest.size() : 20;
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<Announcement> announcementPage = announcementRepository.findAll(specification, pageable);
+        
+        return announcementPage.map(this::toDTO);
+    }
+
+    private Specification<Announcement> buildSpecification(AnnouncementSearchRequest searchRequest) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (searchRequest.title() != null && !searchRequest.title().trim().isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("title")), 
+                    "%" + searchRequest.title().toLowerCase().trim() + "%"));
+            }
+
+            if (searchRequest.status() != null && !searchRequest.status().trim().isEmpty()) {
+                predicates.add(cb.equal(root.get("status"), searchRequest.status().trim()));
+            }
+
+            if (searchRequest.validFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("validFrom"), searchRequest.validFrom()));
+            }
+
+            if (searchRequest.validTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("validTo"), searchRequest.validTo()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     private Announcement toEntity(NewAnnouncement newAnnouncement) {
