@@ -50,4 +50,10 @@ public class AnnouncementController {
         ExistingAnnouncement existingAnnouncement = announcementService.publishAnnouncement(id);
         return ResponseEntity.ok(existingAnnouncement);
     }
+
+    @PutMapping("/{id}/revoke")
+    public ResponseEntity<ExistingAnnouncement> revokeAnnouncement(@PathVariable Long id) {
+        ExistingAnnouncement existingAnnouncement = announcementService.revokeAnnouncement(id);
+        return ResponseEntity.ok(existingAnnouncement);
+    }
 }

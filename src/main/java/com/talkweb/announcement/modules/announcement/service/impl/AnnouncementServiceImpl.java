@@ -25,6 +25,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private static final Set<String> PUBLISHABLE_STATUSES = Set.of("DRAFT", "PENDING", "REVOKED");
 
+    private static final Set<String> REVOKABLE_STATUSES = Set.of("PUBLISHED");
+
     @Override
     @Transactional
     public ExistingAnnouncement createAnnouncement(NewAnnouncement newAnnouncement) {
@@ -77,6 +79,24 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         announcement.setStatus("PUBLISHED");
         announcement.setPublishedAt(LocalDateTime.now());
         announcement.setUpdatedBy("admin");
+
+        Announcement savedAnnouncement = announcementRepository.save(announcement);
+        return toDTO(savedAnnouncement);
+    }
+
+    @Override
+    @Transactional
+    public ExistingAnnouncement revokeAnnouncement(Long id) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("公告不存在，ID: " + id));
+
+        String currentStatus = announcement.getStatus();
+        if (!REVOKABLE_STATUSES.contains(currentStatus)) {
+            throw new BusinessStateException(
+                    String.format("当前状态为 %s，只有已发布状态的公告可以撤销", currentStatus));
+        }
+
+        announcement.setStatus("REVOKED");
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return toDTO(savedAnnouncement);
