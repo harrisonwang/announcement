@@ -16,4 +16,6 @@ public interface AnnouncementService {
     ExistingAnnouncement revokeAnnouncement(Long id);
 
     ExistingAnnouncement deleteAnnouncement(Long id);
+
+    int markExpiredAnnouncements();
 }
