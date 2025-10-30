@@ -9,12 +9,16 @@ import com.talkweb.announcement.modules.announcement.repository.AnnouncementRepo
 import com.talkweb.announcement.modules.announcement.service.AnnouncementService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.SLF4J;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
+@Slf4J
 @Service
 @RequiredArgsConstructor
 public class AnnouncementServiceImpl implements AnnouncementService {
@@ -120,6 +124,28 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return toDTO(savedAnnouncement);
+    }
+
+    @Override
+    @Transactional
+    public int markExpiredAnnouncements() {
+        LocalDate currentDate = LocalDate.now();
+        List<Announcement> expiredAnnouncements = announcementRepository.findExpiredPublishedAnnouncements(currentDate);
+
+        if (expiredAnnouncements.isEmpty()) {
+            log.debug("未找到需要标记为过期的公告");
+            return 0;
+        }
+
+        expiredAnnouncements.forEach(announcement -> {
+            announcement.setStatus("EXPIRED");
+            announcement.setUpdatedBy("system");
+        });
+
+        announcementRepository.saveAll(expiredAnnouncements);
+        log.info("成功标记 {} 条公告为过期状态", expiredAnnouncements.size());
+
+        return expiredAnnouncements.size();
     }
 
     private Announcement toEntity(NewAnnouncement newAnnouncement) {
