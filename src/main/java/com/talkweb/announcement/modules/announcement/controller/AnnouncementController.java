@@ -44,4 +44,10 @@ public class AnnouncementController {
         ExistingAnnouncement existingAnnouncement = announcementService.updateAnnouncement(id, updatedAnnouncement);
         return ResponseEntity.ok(existingAnnouncement);
     }
+
+    @PostMapping("/{id}/publish")
+    public ResponseEntity<ExistingAnnouncement> publishAnnouncement(@PathVariable Long id) {
+        ExistingAnnouncement existingAnnouncement = announcementService.publishAnnouncement(id);
+        return ResponseEntity.ok(existingAnnouncement);
+    }
 }

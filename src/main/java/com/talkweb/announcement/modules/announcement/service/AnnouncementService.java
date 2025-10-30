@@ -10,4 +10,6 @@ public interface AnnouncementService {
     ExistingAnnouncement getAnnouncementById(Long id);
 
     ExistingAnnouncement updateAnnouncement(Long id, UpdatedAnnouncement updatedAnnouncement);
+
+    ExistingAnnouncement publishAnnouncement(Long id);
 }

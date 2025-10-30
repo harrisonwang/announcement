@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Service
@@ -21,6 +22,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private final AnnouncementRepository announcementRepository;
 
     private static final Set<String> EDITABLE_STATUSES = Set.of("DRAFT", "REVOKED", "PENDING");
+
+    private static final Set<String> PUBLISHABLE_STATUSES = Set.of("DRAFT", "PENDING", "REVOKED");
 
     @Override
     @Transactional
@@ -54,6 +57,26 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         announcement.setContent(updatedAnnouncement.content());
         announcement.setValidFrom(updatedAnnouncement.validFrom());
         announcement.setValidTo(updatedAnnouncement.validTo());
+
+        Announcement savedAnnouncement = announcementRepository.save(announcement);
+        return toDTO(savedAnnouncement);
+    }
+
+    @Override
+    @Transactional
+    public ExistingAnnouncement publishAnnouncement(Long id) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("公告不存在，ID: " + id));
+
+        String currentStatus = announcement.getStatus();
+        if (!PUBLISHABLE_STATUSES.contains(currentStatus)) {
+            throw new BusinessStateException(
+                    String.format("当前状态为 %s，只有草稿、待发布或已撤销状态的公告可以发布", currentStatus));
+        }
+
+        announcement.setStatus("PUBLISHED");
+        announcement.setPublishedAt(LocalDateTime.now());
+        announcement.setUpdatedBy("admin");
 
         Announcement savedAnnouncement = announcementRepository.save(announcement);
         return toDTO(savedAnnouncement);
