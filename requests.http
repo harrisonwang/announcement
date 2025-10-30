@@ -1,5 +1,5 @@
 ### Create Announcement
-POST http://localhost:8080/api2/announcements
+POST http://localhost:8080/api/announcements
 Content-Type: application/json
 
 {

@@ -1,8 +1,5 @@
 package com.talkweb.announcement.modules.announcement.controller;
 
-import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
-import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
-
 import java.net.URI;
 import java.time.LocalDate;
 
@@ -18,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import com.talkweb.announcement.modules.announcement.dto.AnnouncementSearchRequest;
 import com.talkweb.announcement.modules.announcement.dto.ExistingAnnouncement;
@@ -40,8 +38,8 @@ public class AnnouncementController {
             @Valid @RequestBody NewAnnouncement newAnnouncement) {
         ExistingAnnouncement existingAnnouncement = announcementService.createAnnouncement(newAnnouncement);
         
-        URI location = fromMethodCall(
-                on(AnnouncementController.class).getAnnouncementById(existingAnnouncement.id())
+        URI location = MvcUriComponentsBuilder.fromMethodCall(
+                MvcUriComponentsBuilder.on(this.getClass()).getAnnouncementById(existingAnnouncement.id())
         ).build().toUri();
         
         return ResponseEntity.created(location).body(existingAnnouncement);
@@ -74,9 +72,9 @@ public class AnnouncementController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ExistingAnnouncement> deleteAnnouncement(@PathVariable Long id) {
-        ExistingAnnouncement existingAnnouncement = announcementService.deleteAnnouncement(id);
-        return ResponseEntity.ok(existingAnnouncement);
+    public ResponseEntity<Void> deleteAnnouncement(@PathVariable Long id) {
+        announcementService.deleteAnnouncement(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
